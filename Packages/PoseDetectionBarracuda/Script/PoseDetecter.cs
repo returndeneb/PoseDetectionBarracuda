@@ -58,16 +58,12 @@ namespace Mediapipe.PoseDetection{
             preProcessCS.SetBuffer(0, "_output", networkInputBuffer);
             preProcessCS.Dispatch(0, IMAGE_SIZE / 8, IMAGE_SIZE / 8, 1);
 
-            ProcessImage(networkInputBuffer, poseThreshold, iouThreshold);
-        }
-
-        public void ProcessImage(ComputeBuffer input, float poseThreshold = 0.75f, float iouThreshold = 0.3f){
             // Reset append type buffer datas of previous frame. 
             postProcessBuffer.SetCounterValue(0);
             outputBuffer.SetCounterValue(0);
 
             //Execute neural network model.
-            var inputTensor = new Tensor(1, IMAGE_SIZE, IMAGE_SIZE, 3, input);
+            var inputTensor = new Tensor(1, IMAGE_SIZE, IMAGE_SIZE, 3, networkInputBuffer);
             woker.Execute(inputTensor);
             inputTensor.Dispose();
 
@@ -104,6 +100,7 @@ namespace Mediapipe.PoseDetection{
             // Set pose detection results count.
             ComputeBuffer.CopyCount(outputBuffer, countBuffer, 0);
         }
+
         #endregion
 
     }
