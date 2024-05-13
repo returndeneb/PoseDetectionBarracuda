@@ -72,24 +72,26 @@ namespace Mediapipe.PoseDetection{
             inputTensor.Dispose();
 
             //Get neural network model raw output as RenderTexture;
-            var scores = CopyOutputToTempRT("classificators", 1, 896);
-            var boxs = CopyOutputToTempRT("regressors", 12, 896);
+            // var scores = CopyOutputToTempRT("classificators", 1, 896);
+            var scores = ((ComputeTensorData)woker.PeekOutput("classificators").tensorOnDevice).buffer;
+            // var boxs = CopyOutputToTempRT("regressors", 12, 896);
+            var boxs = ((ComputeTensorData)woker.PeekOutput("regressors").tensorOnDevice).buffer;
 
             // Parse raw result datas for above values of vectors.
             postProcessCS.SetFloat("_threshold", poseThreshold);
-            postProcessCS.SetTexture(0, "_scores", scores);
-            postProcessCS.SetTexture(0, "_boxs", boxs);
+            postProcessCS.SetBuffer(0, "_scores", scores);
+            postProcessCS.SetBuffer(0, "_boxs", boxs);
             postProcessCS.SetBuffer(0, "_output", postProcessBuffer);
             postProcessCS.Dispatch(0, 1, 1, 1);
 
             // Parse raw result datas for behind values of vectors.
-            postProcessCS.SetTexture(1, "_scores", scores);
-            postProcessCS.SetTexture(1, "_boxs", boxs);
+            postProcessCS.SetBuffer(1, "_scores", scores);
+            postProcessCS.SetBuffer(1, "_boxs", boxs);
             postProcessCS.SetBuffer(1, "_output", postProcessBuffer);
             postProcessCS.Dispatch(1, 1, 1, 1);
 
-            RenderTexture.ReleaseTemporary(scores);
-            RenderTexture.ReleaseTemporary(boxs);
+            // RenderTexture.ReleaseTemporary(scores);
+            // RenderTexture.ReleaseTemporary(boxs);
             ComputeBuffer.CopyCount(postProcessBuffer, countBuffer, 0);
             
             // Get final results of pose deteciton.
@@ -104,18 +106,5 @@ namespace Mediapipe.PoseDetection{
         }
         #endregion
 
-        #region private method
-        // Exchange network output tensor to RenderTexture.
-        RenderTexture CopyOutputToTempRT(string name, int w, int h)
-        {
-            var rtFormat = RenderTextureFormat.RFloat;
-            var shape = new TensorShape(1, h, w, 1);
-            var rt = RenderTexture.GetTemporary(w, h, 0, rtFormat);
-            var tensor = woker.PeekOutput(name).Reshape(shape);
-            tensor.ToRenderTexture(rt);
-            tensor.Dispose();
-            return rt;
-        }
-        #endregion
     }
 }

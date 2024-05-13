@@ -19,8 +19,8 @@ Anchors feture map Similar to Mediapipe BlazeFace(https://arxiv.org/pdf/1907.050
 #include "Common.cginc"
 
 float _threshold;
-Texture2D<float> _scores;
-Texture2D<float> _boxs;
+StructuredBuffer<float> _scores;
+StructuredBuffer<float> _boxs;
 AppendStructuredBuffer<PoseDetection> _output;
 
 float Sigmoid(float x){
@@ -31,25 +31,24 @@ void PostProcess(uint2 id, uint mapSize, uint chSize, uint indexOffset)
 {
     const float scale = 1.0 / IMAGE_SIZE;
     uint index_In0chMap = (id.y * mapSize + id.x) * chSize + indexOffset;
-    float2 anchor = (mapSize - 0.5 - id) / mapSize;
-
+    float2 anchor = ( 0.5 + id) / mapSize;
+    uint bidx = index_In0chMap *12;
     for(uint i=0; i<chSize; i++){
-        uint index = index_In0chMap + i;
         
         PoseDetection pd;
-        pd.score = Sigmoid(_scores[uint2(0, index)]);
+        pd.score = Sigmoid(_scores[index_In0chMap++]);
 
-        float x = _boxs[uint2(0, index)] * scale;
-        float y = _boxs[uint2(1, index)] * scale;
-        float w = _boxs[uint2(2, index)] * scale;
-        float h = _boxs[uint2(3, index)] * scale;
-        pd.center = anchor + float2(x, y);
-        pd.extent = float2(w, h);
+        float x = _boxs[bidx++] ;
+        float y = _boxs[bidx++] ;
+        float w = _boxs[bidx++] ;
+        float h = _boxs[bidx++] ;
+        pd.center = anchor + float2(x, y)* scale;
+        pd.extent = float2(w, h)* scale;
         
         [unroll] for(uint i=0; i<4; i++){
-            x = _boxs[uint2(i*2 + 4, index)] * scale;
-            y = _boxs[uint2(i*2 + 5, index)] * scale;
-            pd.keyPoints[i] = anchor + float2(x, y);
+            x = _boxs[bidx++] ;
+            y = _boxs[bidx++] ;
+            pd.keyPoints[i] = anchor + float2(x, y)* scale;
         }
 
         if (pd.score > _threshold)_output.Append(pd);
@@ -60,7 +59,7 @@ void PostProcess(uint2 id, uint mapSize, uint chSize, uint indexOffset)
 [numthreads(8, 8, 1)]
 void PostprocessFor8Map(uint2 id : SV_DispatchThreadID)
 {
-    PostProcess(id, 8, 6, 0);
+    PostProcess(id, 8, 6, 512);
 }
 
 // Process behind vector of 896 Colmuns.
@@ -68,6 +67,6 @@ void PostprocessFor8Map(uint2 id : SV_DispatchThreadID)
 void PostprocessFor16Map(uint2 id : SV_DispatchThreadID)
 {   
     const uint ABOVE_VECTOR_LENGTH = 8 * 8 * 6;
-    PostProcess(id, 16, 2, ABOVE_VECTOR_LENGTH);
+    PostProcess(id, 16, 2, 0);
 }
 
