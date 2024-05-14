@@ -48,12 +48,12 @@ namespace Mediapipe.PoseDetection{
             postProcessCS = resource.postProcessCS;
             postProcess2CS = resource.postProcess2CS;
             
-            outputBuffer = new ComputeBuffer(MAX_DETECTION, PoseDetection.SIZE, ComputeBufferType.Append);
+            outputBuffer = new ComputeBuffer(MAX_DETECTION, PoseDetection.Size, ComputeBufferType.Append);
             countBuffer = new ComputeBuffer(1, sizeof(uint), ComputeBufferType.Raw);
             // networkInputBuffer = new ComputeBuffer(IMAGE_SIZE * IMAGE_SIZE * 3, sizeof(float));
             
             model = ModelLoader.Load(resource.model);
-            postProcessBuffer = new ComputeBuffer(MAX_DETECTION, PoseDetection.SIZE, ComputeBufferType.Append);
+            postProcessBuffer = new ComputeBuffer(MAX_DETECTION, PoseDetection.Size, ComputeBufferType.Append);
 #if Sentis
             data = new ComputeTensorData(shape,false);
             tensor = TensorFloat.Zeros(shape);

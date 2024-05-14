@@ -11,7 +11,7 @@ namespace Mediapipe.PoseDetection{
         public readonly Vector2 roi_full;
         public readonly Vector2 shoulderCenter;
         public readonly Vector2 roi_upper;
-        public const int SIZE = 13 * sizeof(float);
+        public const int Size = 13 * sizeof(float);
         public const int Max = 64;
     }
 }
