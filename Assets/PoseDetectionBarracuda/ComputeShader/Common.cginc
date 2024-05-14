@@ -3,7 +3,7 @@
 
 // Input image size defined by pose detection neural network model.
 #define IMAGE_SIZE 128
-
+#define MAX_DETECTION 64
 // This struct is related with "PoseDetection.cs"
 struct PoseDetection
 {

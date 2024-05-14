@@ -34,8 +34,8 @@ public class PoseVisuallizer : MonoBehaviour
         material.SetBuffer("_pds", detecter.outputBuffer);
 
         // Set pose detection count as vertex shader instance count.
-        ComputeBuffer.CopyCount(detecter.outputBuffer, boxDrawArgs, sizeof(uint));
-        ComputeBuffer.CopyCount(detecter.outputBuffer, lineDrawArgs, sizeof(uint));
+        GraphicsBuffer.CopyCount(detecter.outputBuffer, boxDrawArgs, sizeof(uint));
+        GraphicsBuffer.CopyCount(detecter.outputBuffer, lineDrawArgs, sizeof(uint));
 
         // Draw face region box.
         material.SetPass(0);

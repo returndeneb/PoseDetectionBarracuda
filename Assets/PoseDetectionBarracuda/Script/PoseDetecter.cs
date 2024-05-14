@@ -1,5 +1,10 @@
 using UnityEngine;
+#if Sentis
+using Unity.Sentis;
+#else
 using Unity.Barracuda;
+#endif
+
 
 namespace Mediapipe.PoseDetection{
     public class PoseDetecter: System.IDisposable
@@ -24,8 +29,17 @@ namespace Mediapipe.PoseDetection{
         ComputeShader preProcessCS;
         ComputeShader postProcessCS;
         ComputeShader postProcess2CS;
-        ComputeBuffer networkInputBuffer;
         ComputeBuffer postProcessBuffer;
+        // ComputeBuffer networkInputBuffer;
+
+        private ComputeTensorData data;
+#if Sentis
+        TensorShape shape =new (1,3,IMAGE_SIZE, IMAGE_SIZE);
+#else
+        TensorShape shape =new (1,IMAGE_SIZE, IMAGE_SIZE, 3);
+#endif
+        private Tensor tensor;
+        
         #endregion
 
         #region public method
@@ -36,18 +50,26 @@ namespace Mediapipe.PoseDetection{
             
             outputBuffer = new ComputeBuffer(MAX_DETECTION, PoseDetection.SIZE, ComputeBufferType.Append);
             countBuffer = new ComputeBuffer(1, sizeof(uint), ComputeBufferType.Raw);
-            networkInputBuffer = new ComputeBuffer(IMAGE_SIZE * IMAGE_SIZE * 3, sizeof(float));
-            postProcessBuffer = new ComputeBuffer(MAX_DETECTION, PoseDetection.SIZE, ComputeBufferType.Append);
-
-            // Prepare neural network model.
+            // networkInputBuffer = new ComputeBuffer(IMAGE_SIZE * IMAGE_SIZE * 3, sizeof(float));
+            
             model = ModelLoader.Load(resource.model);
-            woker = model.CreateWorker();
+            postProcessBuffer = new ComputeBuffer(MAX_DETECTION, PoseDetection.SIZE, ComputeBufferType.Append);
+#if Sentis
+            data = new ComputeTensorData(shape,false);
+            tensor = TensorFloat.Zeros(shape);
+            woker = WorkerFactory.CreateWorker(BackendType.GPUCompute, model);
+#else
+            data = new ComputeTensorData(shape, "preprocess", ComputeInfo.ChannelsOrder.NHWC, false);
+            woker = model.CreateWorker(WorkerFactory.Device.GPU);
+#endif
+        
         }
 
         public void Dispose(){
             outputBuffer.Dispose();
             countBuffer.Dispose();
-            networkInputBuffer.Dispose();
+            // networkInputBuffer.Dispose();
+            data=null;
             postProcessBuffer.Dispose();
             woker.Dispose();
         }
@@ -55,24 +77,27 @@ namespace Mediapipe.PoseDetection{
         public void ProcessImage(Texture inputTexture, float poseThreshold = 0.75f, float iouThreshold = 0.3f){
             // Resize `inputTexture` texture to network model image size.
             preProcessCS.SetTexture(0, "_inputTexture", inputTexture);
-            preProcessCS.SetBuffer(0, "_output", networkInputBuffer);
+            preProcessCS.SetBuffer(0, "_output", data.buffer);
             preProcessCS.Dispatch(0, IMAGE_SIZE / 8, IMAGE_SIZE / 8, 1);
 
             // Reset append type buffer datas of previous frame. 
             postProcessBuffer.SetCounterValue(0);
             outputBuffer.SetCounterValue(0);
-
+#if Sentis
+            tensor.AttachToDevice(data);
+#else
+            tensor = new Tensor(shape, data);
+#endif
+            
             //Execute neural network model.
-            var inputTensor = new Tensor(1, IMAGE_SIZE, IMAGE_SIZE, 3, networkInputBuffer);
-            woker.Execute(inputTensor);
-            inputTensor.Dispose();
+            woker.Execute(tensor);
 
             //Get neural network model raw output as RenderTexture;
             // var scores = CopyOutputToTempRT("classificators", 1, 896);
             var scores = ((ComputeTensorData)woker.PeekOutput("classificators").tensorOnDevice).buffer;
             // var boxs = CopyOutputToTempRT("regressors", 12, 896);
             var boxs = ((ComputeTensorData)woker.PeekOutput("regressors").tensorOnDevice).buffer;
-
+            
             // Parse raw result datas for above values of vectors.
             postProcessCS.SetFloat("_threshold", poseThreshold);
             postProcessCS.SetBuffer(0, "_scores", scores);
