@@ -157,7 +157,8 @@ MonoBehaviour:
   shader: {fileID: 4800000, guid: 0f0f524bb939c044fab83ebad18ff756, type: 3}
   poseDetectionResource: {fileID: 11400000, guid: 5ca7e1876a92b194598fc3f9de2c76f1,
     type: 2}
-  isUpperBodyOnly: 0
+  poseDetectionResource2: {fileID: 11400000, guid: e0ae702e1b65c164abe05abde4cc9f66,
+    type: 2}
 --- !u!4 &127660497
 Transform:
   m_ObjectHideFlags: 0
@@ -168,6 +169,7 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 3
@@ -201,6 +203,7 @@ RectTransform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 0, y: 0, z: 0}
+  m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1877306207}
   m_Father: {fileID: 0}
@@ -351,6 +354,7 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: -10}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 0
@@ -418,6 +422,7 @@ RectTransform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 662748369}
   m_RootOrder: 0
@@ -458,7 +463,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   webCamName: 
   webCamResolution: {x: 1080, y: 1080}
-  canvasScaler: {fileID: 662748371}
   rawImage: {fileID: 1877306205}
   staticInput: {fileID: 2800000, guid: 6800fdb80e15be240b94947a58b32e81, type: 3}
 --- !u!4 &2136646292
@@ -471,6 +475,7 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 2

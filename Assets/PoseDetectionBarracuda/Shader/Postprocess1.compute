@@ -1,0 +1,29 @@
+#pragma kernel Postprocess1Layer1
+#pragma kernel Postprocess1Layer2
+
+#include "Common.hlsl"
+
+StructuredBuffer<float> _Scores;
+StructuredBuffer<float> _Boxes;
+float _ImageSize;
+float _Threshold;
+
+AppendStructuredBuffer<PoseDetection>  _Output;
+
+#define mapSize 16
+#define chSize 2
+#define indexOffset 0
+#define KERNEL_NAME Postprocess1Layer1
+#include "Postprocess1Kernel.hlsl"
+
+#undef mapSize
+#undef chSize
+#undef KERNEL_NAME
+#undef indexOffset
+
+
+#define mapSize 8
+#define chSize 6
+#define indexOffset 512
+#define KERNEL_NAME Postprocess1Layer2
+#include "Postprocess1Kernel.hlsl"

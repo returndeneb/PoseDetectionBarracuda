@@ -110,7 +110,7 @@ namespace Mediapipe.PoseDetection{
             postProcessCS.SetBuffer(1, "_boxs", boxs);
             postProcessCS.SetBuffer(1, "_output", postProcessBuffer);
             postProcessCS.Dispatch(1, 1, 1, 1);
-
+            
             // RenderTexture.ReleaseTemporary(scores);
             // RenderTexture.ReleaseTemporary(boxs);
             ComputeBuffer.CopyCount(postProcessBuffer, countBuffer, 0);

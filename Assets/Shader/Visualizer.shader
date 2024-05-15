@@ -3,7 +3,7 @@
     CGINCLUDE
 
     #include "UnityCG.cginc"
-    #include "Packages/PoseDetectionBarracuda/ComputeShader/Common.cginc"
+    #include "Assets/PoseDetectionBarracuda/Shader/Common.hlsl"
 
     #define PI 3.14159265359
 

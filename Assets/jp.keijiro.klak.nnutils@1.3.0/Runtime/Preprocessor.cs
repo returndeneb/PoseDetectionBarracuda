@@ -1,4 +1,4 @@
-using Unity.Barracuda;
+using Unity.Sentis;
 using UnityEngine;
 using Klak.NNUtils.Extensions;
 
@@ -23,7 +23,7 @@ public class ImagePreprocess : System.IDisposable
     {
         _width = width;
         _height = height;
-#if BARRACUDA_4_0_0_OR_LATER
+#if Sentis
         _nchw = nchwFix;
 #else
         _nchw = false;
