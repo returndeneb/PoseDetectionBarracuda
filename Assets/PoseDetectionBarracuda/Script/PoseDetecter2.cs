@@ -5,11 +5,11 @@ using Klak.NNUtils.Extensions;
 
 namespace Mediapipe.PoseDetection {
 
-public sealed class PalmDetector : System.IDisposable
+public sealed class poseDetectorSentis : System.IDisposable
 {
     #region Public methods/properties
 
-    public PalmDetector(PoseDetectionResource resources)
+    public poseDetectorSentis(PoseDetectionResource resources)
       => AllocateObjects(resources);
 
     public void Dispose()
@@ -92,6 +92,47 @@ public sealed class PalmDetector : System.IDisposable
         // Run the BlazePalm model.
         _worker.Execute(_preprocess.Tensor);
 
+        // 1st postprocess (bounding box aggregation)
+        var post1 = _resources.postProcessCS;
+        post1.SetFloat("_ImageSize", _size);
+        post1.SetFloat("_Threshold", threshold);
+        // var scores = _worker.PeekOutputBuffer("classificators");
+        // Debug.Log(scores.count);
+        post1.SetBuffer(0, "_Scores", _worker.PeekOutputBuffer("classificators"));
+        post1.SetBuffer(0, "_Boxes", _worker.PeekOutputBuffer("regressors"));
+        post1.SetBuffer(0, "_Output", _output.post1);
+        post1.Dispatch(0, 1, 1, 1);
+
+        post1.SetBuffer(1, "_Scores", _worker.PeekOutputBuffer("classificators"));
+        post1.SetBuffer(1, "_Boxes", _worker.PeekOutputBuffer("regressors"));
+        post1.SetBuffer(1, "_Output", _output.post1);
+        post1.Dispatch(1, 1, 1, 1);
+
+        // Retrieve the bounding box count.
+        GraphicsBuffer.CopyCount(_output.post1, _output.count, 0);
+
+        // 2nd postprocess (overlap removal)
+        var post2 = _resources.postProcess2CS;
+        post2.SetBuffer(0, "_inputBuffer", _output.post1);
+        post2.SetBuffer(0, "_inputCountBuffer", _output.count);
+        post2.SetBuffer(0, "_output", _output.post2);
+        post2.Dispatch(0, 1, 1, 1);
+
+        // Retrieve the bounding box count after removal.
+        GraphicsBuffer.CopyCount(_output.post2, _output.count, 0);
+
+        // Cache data invalidation
+        _readCache.InvalidateCache();
+    }
+
+    void RunModel(ComputeBuffer buffer,float threshold)
+    {
+        int elementCount = 1 * 3 * 128 * 128;
+        float[] dataArray = new float[elementCount];
+        buffer.GetData(dataArray);
+        var tensor = new TensorFloat(new TensorShape(1,3,128, 128),dataArray);
+        _worker.Execute(tensor);
+        
         // 1st postprocess (bounding box aggregation)
         var post1 = _resources.postProcessCS;
         post1.SetFloat("_ImageSize", _size);

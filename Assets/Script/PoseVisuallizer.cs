@@ -10,7 +10,7 @@ public class PoseVisuallizer : MonoBehaviour
 
     Material material;
     // PoseDetecter detecter;
-    PalmDetector detecter2;
+    poseDetectorSentis detecter2;
     ComputeBuffer boxDrawArgs;
     ComputeBuffer lineDrawArgs;
 
@@ -24,7 +24,7 @@ public class PoseVisuallizer : MonoBehaviour
         lineDrawArgs.SetData(new [] {2, 0, 0, 0});
 
         // detecter = new PoseDetecter(poseDetectionResource);
-        detecter2 = new PalmDetector(poseDetectionResource2);
+        detecter2 = new poseDetectorSentis(poseDetectionResource2);
     }
 
     void LateUpdate(){
